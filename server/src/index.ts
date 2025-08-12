@@ -3,40 +3,21 @@ import { createHTTPServer } from '@trpc/server/adapters/standalone';
 import 'dotenv/config';
 import cors from 'cors';
 import superjson from 'superjson';
-import { z } from 'zod';
 
-// Import schema types
-import {
-  createStockInputSchema,
-  updateStockInputSchema,
-  searchStocksInputSchema,
-  addPortfolioHoldingInputSchema,
-  updatePortfolioHoldingInputSchema,
-  getPortfolioInputSchema,
-  addWatchlistItemInputSchema,
-  updateWatchlistItemInputSchema,
-  getWatchlistInputSchema,
-  addHistoricalPriceInputSchema,
-  getHistoricalPricesInputSchema,
-  deleteItemInputSchema
+// Import schema types for input validation
+import { 
+  createTaskInputSchema, 
+  updateTaskInputSchema, 
+  deleteTaskInputSchema,
+  getTaskInputSchema 
 } from './schema';
 
 // Import handlers
-import { createStock } from './handlers/create_stock';
-import { updateStock } from './handlers/update_stock';
-import { searchStocks } from './handlers/search_stocks';
-import { getStockBySymbol } from './handlers/get_stock_by_symbol';
-import { addPortfolioHolding } from './handlers/add_portfolio_holding';
-import { updatePortfolioHolding } from './handlers/update_portfolio_holding';
-import { getPortfolio } from './handlers/get_portfolio';
-import { getPortfolioSummary } from './handlers/get_portfolio_summary';
-import { deletePortfolioHolding } from './handlers/delete_portfolio_holding';
-import { addWatchlistItem } from './handlers/add_watchlist_item';
-import { getWatchlist } from './handlers/get_watchlist';
-import { updateWatchlistItem } from './handlers/update_watchlist_item';
-import { deleteWatchlistItem } from './handlers/delete_watchlist_item';
-import { addHistoricalPrice } from './handlers/add_historical_price';
-import { getHistoricalPrices } from './handlers/get_historical_prices';
+import { createTask } from './handlers/create_task';
+import { getTasks } from './handlers/get_tasks';
+import { getTask } from './handlers/get_task';
+import { updateTask } from './handlers/update_task';
+import { deleteTask } from './handlers/delete_task';
 
 const t = initTRPC.create({
   transformer: superjson,
@@ -46,74 +27,29 @@ const publicProcedure = t.procedure;
 const router = t.router;
 
 const appRouter = router({
-  // Health check
   healthcheck: publicProcedure.query(() => {
     return { status: 'ok', timestamp: new Date().toISOString() };
   }),
-
-  // Stock management routes
-  createStock: publicProcedure
-    .input(createStockInputSchema)
-    .mutation(({ input }) => createStock(input)),
-
-  updateStock: publicProcedure
-    .input(updateStockInputSchema)
-    .mutation(({ input }) => updateStock(input)),
-
-  searchStocks: publicProcedure
-    .input(searchStocksInputSchema)
-    .query(({ input }) => searchStocks(input)),
-
-  getStockBySymbol: publicProcedure
-    .input(z.string())
-    .query(({ input }) => getStockBySymbol(input)),
-
-  // Portfolio management routes
-  addPortfolioHolding: publicProcedure
-    .input(addPortfolioHoldingInputSchema)
-    .mutation(({ input }) => addPortfolioHolding(input)),
-
-  updatePortfolioHolding: publicProcedure
-    .input(updatePortfolioHoldingInputSchema)
-    .mutation(({ input }) => updatePortfolioHolding(input)),
-
-  getPortfolio: publicProcedure
-    .input(getPortfolioInputSchema)
-    .query(({ input }) => getPortfolio(input)),
-
-  getPortfolioSummary: publicProcedure
-    .input(getPortfolioInputSchema)
-    .query(({ input }) => getPortfolioSummary(input)),
-
-  deletePortfolioHolding: publicProcedure
-    .input(deleteItemInputSchema)
-    .mutation(({ input }) => deletePortfolioHolding(input)),
-
-  // Watchlist management routes
-  addWatchlistItem: publicProcedure
-    .input(addWatchlistItemInputSchema)
-    .mutation(({ input }) => addWatchlistItem(input)),
-
-  getWatchlist: publicProcedure
-    .input(getWatchlistInputSchema)
-    .query(({ input }) => getWatchlist(input)),
-
-  updateWatchlistItem: publicProcedure
-    .input(updateWatchlistItemInputSchema)
-    .mutation(({ input }) => updateWatchlistItem(input)),
-
-  deleteWatchlistItem: publicProcedure
-    .input(deleteItemInputSchema)
-    .mutation(({ input }) => deleteWatchlistItem(input)),
-
-  // Historical data routes
-  addHistoricalPrice: publicProcedure
-    .input(addHistoricalPriceInputSchema)
-    .mutation(({ input }) => addHistoricalPrice(input)),
-
-  getHistoricalPrices: publicProcedure
-    .input(getHistoricalPricesInputSchema)
-    .query(({ input }) => getHistoricalPrices(input)),
+  
+  // Task management routes
+  createTask: publicProcedure
+    .input(createTaskInputSchema)
+    .mutation(({ input }) => createTask(input)),
+    
+  getTasks: publicProcedure
+    .query(() => getTasks()),
+    
+  getTask: publicProcedure
+    .input(getTaskInputSchema)
+    .query(({ input }) => getTask(input)),
+    
+  updateTask: publicProcedure
+    .input(updateTaskInputSchema)
+    .mutation(({ input }) => updateTask(input)),
+    
+  deleteTask: publicProcedure
+    .input(deleteTaskInputSchema)
+    .mutation(({ input }) => deleteTask(input)),
 });
 
 export type AppRouter = typeof appRouter;
@@ -130,7 +66,7 @@ async function start() {
     },
   });
   server.listen(port);
-  console.log(`Stock Analysis Dashboard TRPC server listening at port: ${port}`);
+  console.log(`TRPC server listening at port: ${port}`);
 }
 
 start();
