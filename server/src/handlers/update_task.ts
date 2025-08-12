@@ -1,15 +1,40 @@
+import { db } from '../db';
+import { tasksTable } from '../db/schema';
 import { type UpdateTaskInput, type Task } from '../schema';
+import { eq } from 'drizzle-orm';
 
-export async function updateTask(input: UpdateTaskInput): Promise<Task> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is updating an existing task in the database.
-    // Should handle partial updates (only update provided fields).
-    // This is commonly used for marking tasks as complete/incomplete.
-    return Promise.resolve({
-        id: input.id,
-        title: "Updated Task", // Placeholder
-        description: null,
-        completed: input.completed ?? false,
-        created_at: new Date()
-    } as Task);
-}
+export const updateTask = async (input: UpdateTaskInput): Promise<Task> => {
+  try {
+    // Build update object with only the provided fields
+    const updateData: Partial<typeof tasksTable.$inferInsert> = {};
+    
+    if (input.title !== undefined) {
+      updateData.title = input.title;
+    }
+    
+    if (input.description !== undefined) {
+      updateData.description = input.description;
+    }
+    
+    if (input.completed !== undefined) {
+      updateData.completed = input.completed;
+    }
+
+    // Update the task and return the updated record
+    const result = await db.update(tasksTable)
+      .set(updateData)
+      .where(eq(tasksTable.id, input.id))
+      .returning()
+      .execute();
+
+    // Check if the task was found and updated
+    if (result.length === 0) {
+      throw new Error(`Task with id ${input.id} not found`);
+    }
+
+    return result[0];
+  } catch (error) {
+    console.error('Task update failed:', error);
+    throw error;
+  }
+};
